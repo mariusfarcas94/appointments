@@ -31,7 +31,7 @@ public class UserSecurityConfig {
     private final UserDetailsService userDetailsService;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -66,27 +66,9 @@ public class UserSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Allow localhost on common development ports
-        configuration.addAllowedOrigin("http://localhost:3000");  // React default
-        configuration.addAllowedOrigin("http://localhost:3001");  // Alternative React port
-        configuration.addAllowedOrigin("http://localhost:4200");  // Angular default
-        configuration.addAllowedOrigin("http://localhost:8080");  // Alternative backend port
-        configuration.addAllowedOrigin("http://localhost:5173");  // Vite default
-        configuration.addAllowedOrigin("http://localhost:5174");  // Alternative Vite port
-        configuration.addAllowedOrigin("http://127.0.0.1:3000");  // Alternative localhost
-        configuration.addAllowedOrigin("http://127.0.0.1:3001");
-        configuration.addAllowedOrigin("http://127.0.0.1:4200");
-        configuration.addAllowedOrigin("http://127.0.0.1:8080");
-        configuration.addAllowedOrigin("http://127.0.0.1:5173");
-        configuration.addAllowedOrigin("http://127.0.0.1:5174");
-        
-        // Allow all HTTP methods
+        configuration.addAllowedOrigin("http://localhost:3000"); 
         configuration.addAllowedMethod("*");
-        
-        // Allow all headers
         configuration.addAllowedHeader("*");
-        
-        // Allow credentials (cookies, authorization headers)
         configuration.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -167,7 +167,7 @@ public class UserService {
                 .username(user.getUsername())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .enabled(user.getEnabled())
+                .enabled(user.isEnabled())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .roles(roles)

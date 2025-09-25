@@ -10,7 +10,6 @@ import java.util.Optional;
 @Mapper
 public interface UserRepository {
     
-    // Pure automatic mapping - no explicit @Result annotations needed!
     @Select("SELECT * FROM users WHERE username = #{username}")
     Optional<User> findByUsername(String username);
     
@@ -18,7 +17,7 @@ public interface UserRepository {
     @Select("SELECT * FROM users WHERE id = #{id}")
     Optional<User> findById(Long id);
     
-    @Select("SELECT * FROM users ORDER BY created_at DESC")
+    @Select("SELECT * FROM users")
     List<User> findAll();
     
     @Insert("INSERT INTO users (username, password, first_name, last_name, enabled, created_at, updated_at) " +

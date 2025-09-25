@@ -5,9 +5,9 @@ import com.motioncare.user.model.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,16 +15,17 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
+@SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @ActiveProfiles("test")
+@Transactional
 class UserRepositoryTest {
 
     @Autowired
-    private TestEntityManager entityManager;
-
-    @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private RoleRepository roleRepository;
 
     private User createTestUser() {
         return User.builder()
@@ -49,7 +50,7 @@ class UserRepositoryTest {
     void findByUsername_ShouldReturnUser_WhenUserExists() {
         // Given
         User user = createTestUser();
-        entityManager.persistAndFlush(user);
+        userRepository.save(user);
 
         // When
         Optional<User> found = userRepository.findByUsername("testuser");
@@ -74,14 +75,14 @@ class UserRepositoryTest {
     void findById_ShouldReturnUser_WhenUserExists() {
         // Given
         User user = createTestUser();
-        User saved = entityManager.persistAndFlush(user);
+        userRepository.save(user);
 
         // When
-        Optional<User> found = userRepository.findById(saved.getId());
+        Optional<User> found = userRepository.findById(user.getId());
 
         // Then
         assertTrue(found.isPresent());
-        assertEquals(saved.getId(), found.get().getId());
+        assertEquals(user.getId(), found.get().getId());
         assertEquals("testuser", found.get().getUsername());
     }
 
@@ -104,18 +105,21 @@ class UserRepositoryTest {
                 .firstName("User")
                 .lastName("Two")
                 .enabled(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
-        entityManager.persistAndFlush(user1);
-        entityManager.persistAndFlush(user2);
+        userRepository.save(user1);
+        userRepository.save(user2);
 
         // When
         List<User> users = userRepository.findAll();
 
-        // Then
-        assertEquals(2, users.size());
+        // Then (should be 3: 2 test users + 1 default admin user)
+        assertEquals(3, users.size());
         assertTrue(users.stream().anyMatch(u -> u.getUsername().equals("testuser")));
         assertTrue(users.stream().anyMatch(u -> u.getUsername().equals("user2")));
+        assertTrue(users.stream().anyMatch(u -> u.getUsername().equals("admin")));
     }
 
     @Test
@@ -140,18 +144,19 @@ class UserRepositoryTest {
     void update_ShouldUpdateUser_WhenValidUser() {
         // Given
         User user = createTestUser();
-        User saved = entityManager.persistAndFlush(user);
-        saved.setFirstName("Updated");
-        saved.setLastName("Name");
+        userRepository.save(user);
+        user.setFirstName("Updated");
+        user.setLastName("Name");
+        user.setUpdatedAt(LocalDateTime.now());
 
         // When
-        int result = userRepository.update(saved);
+        int result = userRepository.update(user);
 
         // Then
         assertEquals(1, result);
         
         // Verify user was updated
-        Optional<User> updated = userRepository.findById(saved.getId());
+        Optional<User> updated = userRepository.findById(user.getId());
         assertTrue(updated.isPresent());
         assertEquals("Updated", updated.get().getFirstName());
         assertEquals("Name", updated.get().getLastName());
@@ -161,16 +166,16 @@ class UserRepositoryTest {
     void deleteById_ShouldDeleteUser_WhenUserExists() {
         // Given
         User user = createTestUser();
-        User saved = entityManager.persistAndFlush(user);
+        userRepository.save(user);
 
         // When
-        int result = userRepository.deleteById(saved.getId());
+        int result = userRepository.deleteById(user.getId());
 
         // Then
         assertEquals(1, result);
         
         // Verify user was deleted
-        Optional<User> deleted = userRepository.findById(saved.getId());
+        Optional<User> deleted = userRepository.findById(user.getId());
         assertFalse(deleted.isPresent());
     }
 
@@ -178,7 +183,7 @@ class UserRepositoryTest {
     void existsByUsername_ShouldReturnTrue_WhenUserExists() {
         // Given
         User user = createTestUser();
-        entityManager.persistAndFlush(user);
+        userRepository.save(user);
 
         // When
         boolean exists = userRepository.existsByUsername("testuser");
@@ -200,17 +205,18 @@ class UserRepositoryTest {
     void assignRole_ShouldAssignRoleToUser() {
         // Given
         User user = createTestUser();
-        User savedUser = entityManager.persistAndFlush(user);
+        userRepository.save(user);
         
-        Role role = createTestRole();
-        Role savedRole = entityManager.persistAndFlush(role);
+        // Use existing USER role from database schema
+        Optional<Role> existingRole = roleRepository.findByName("USER");
+        assertTrue(existingRole.isPresent());
 
         // When
-        userRepository.assignRole(savedUser.getId(), savedRole.getId());
+        userRepository.assignRole(user.getId(), existingRole.get().getId());
 
         // Then
         // Verify role was assigned by checking roles
-        List<Role> userRoles = userRepository.findRolesByUserId(savedUser.getId());
+        List<Role> userRoles = userRepository.findRolesByUserId(user.getId());
         assertEquals(1, userRoles.size());
         assertEquals("USER", userRoles.get(0).getName());
     }
@@ -219,19 +225,20 @@ class UserRepositoryTest {
     void removeRole_ShouldRemoveRoleFromUser() {
         // Given
         User user = createTestUser();
-        User savedUser = entityManager.persistAndFlush(user);
+        userRepository.save(user);
         
-        Role role = createTestRole();
-        Role savedRole = entityManager.persistAndFlush(role);
+        // Use existing USER role from database schema
+        Optional<Role> existingRole = roleRepository.findByName("USER");
+        assertTrue(existingRole.isPresent());
         
         // Assign role first
-        userRepository.assignRole(savedUser.getId(), savedRole.getId());
+        userRepository.assignRole(user.getId(), existingRole.get().getId());
 
         // When
-        userRepository.removeRole(savedUser.getId(), savedRole.getId());
+        userRepository.removeRole(user.getId(), existingRole.get().getId());
 
         // Then
-        List<Role> userRoles = userRepository.findRolesByUserId(savedUser.getId());
+        List<Role> userRoles = userRepository.findRolesByUserId(user.getId());
         assertEquals(0, userRoles.size());
     }
 
@@ -239,22 +246,19 @@ class UserRepositoryTest {
     void findRolesByUserId_ShouldReturnUserRoles() {
         // Given
         User user = createTestUser();
-        User savedUser = entityManager.persistAndFlush(user);
+        userRepository.save(user);
         
-        Role role1 = createTestRole();
-        Role role2 = Role.builder()
-                .name("ADMIN")
-                .description("Admin role")
-                .build();
+        // Use existing roles from database schema
+        Optional<Role> userRole = roleRepository.findByName("USER");
+        Optional<Role> adminRole = roleRepository.findByName("ADMIN");
+        assertTrue(userRole.isPresent());
+        assertTrue(adminRole.isPresent());
         
-        Role savedRole1 = entityManager.persistAndFlush(role1);
-        Role savedRole2 = entityManager.persistAndFlush(role2);
-        
-        userRepository.assignRole(savedUser.getId(), savedRole1.getId());
-        userRepository.assignRole(savedUser.getId(), savedRole2.getId());
+        userRepository.assignRole(user.getId(), userRole.get().getId());
+        userRepository.assignRole(user.getId(), adminRole.get().getId());
 
         // When
-        List<Role> roles = userRepository.findRolesByUserId(savedUser.getId());
+        List<Role> roles = userRepository.findRolesByUserId(user.getId());
 
         // Then
         assertEquals(2, roles.size());
@@ -266,10 +270,10 @@ class UserRepositoryTest {
     void findRolesByUserId_ShouldReturnEmptyList_WhenUserHasNoRoles() {
         // Given
         User user = createTestUser();
-        User savedUser = entityManager.persistAndFlush(user);
+        userRepository.save(user);
 
         // When
-        List<Role> roles = userRepository.findRolesByUserId(savedUser.getId());
+        List<Role> roles = userRepository.findRolesByUserId(user.getId());
 
         // Then
         assertTrue(roles.isEmpty());

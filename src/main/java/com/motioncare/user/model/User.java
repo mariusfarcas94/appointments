@@ -2,8 +2,10 @@ package com.motioncare.user.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.AccessLevel;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,7 +15,8 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,6 +26,7 @@ public class User implements UserDetails {
     private String password;
     private String firstName;
     private String lastName;
+    @Getter(AccessLevel.NONE)
     private Boolean enabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

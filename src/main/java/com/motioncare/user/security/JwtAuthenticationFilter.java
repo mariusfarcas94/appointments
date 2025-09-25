@@ -28,14 +28,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         
+        log.debug("JWT Filter processing request: {} {}", request.getMethod(), request.getRequestURI());
+        
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String username;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.debug("No Bearer token found in request");
             filterChain.doFilter(request, response);
             return;
         }
+        
+        log.debug("Bearer token found: {}", authHeader.substring(0, Math.min(20, authHeader.length())) + "...");
 
         jwt = authHeader.substring(7);
         try {
@@ -47,13 +52,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            log.debug("Loading user details for username: {}", username);
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             if (Boolean.TRUE.equals(jwtUtil.validateToken(jwt, userDetails))) {
+                log.debug("JWT token validated successfully for user: {}", username);
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                log.debug("Authentication set in SecurityContext for user: {}", username);
+            } else {
+                log.warn("JWT token validation failed for user: {}", username);
             }
+        } else if (username == null) {
+            log.warn("Could not extract username from JWT token");
+        } else {
+            log.debug("User already authenticated: {}", username);
         }
         filterChain.doFilter(request, response);
     }

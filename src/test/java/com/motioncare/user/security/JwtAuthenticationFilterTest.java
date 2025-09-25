@@ -1,7 +1,5 @@
 package com.motioncare.user.security;
 
-import com.motioncare.user.model.Role;
-import com.motioncare.user.model.User;
 import com.motioncare.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import java.io.IOException;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -45,27 +42,9 @@ class JwtAuthenticationFilterTest {
     @InjectMocks
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private User testUser;
-    private Role adminRole;
 
     @BeforeEach
     void setUp() {
-        adminRole = Role.builder()
-                .id(1L)
-                .name("ADMIN")
-                .description("Administrator role")
-                .build();
-
-        testUser = User.builder()
-                .id(1L)
-                .username("testuser")
-                .password("encodedPassword")
-                .firstName("Test")
-                .lastName("User")
-                .enabled(true)
-                .roles(Set.of(adminRole))
-                .build();
-
         // Clear security context before each test
         SecurityContextHolder.clearContext();
     }

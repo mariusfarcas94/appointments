@@ -17,6 +17,9 @@ public class UserUpdateRequest {
     private String password;
     
     private String firstName;
+
     private String lastName;
+
     private Boolean enabled;
+    
 }

@@ -30,7 +30,6 @@ class CalendarEventsControllerTest {
 
     private Event testEvent;
     private Events testEvents;
-    private CreateEventRequest createEventRequest;
 
     @BeforeEach
     void setUp() {
@@ -40,10 +39,6 @@ class CalendarEventsControllerTest {
         
         testEvents = new Events()
                 .setItems(List.of(testEvent));
-
-        createEventRequest = CreateEventRequest.builder()
-                .summary("Test Event")
-                .build();
     }
 
     @Test
@@ -79,22 +74,6 @@ class CalendarEventsControllerTest {
         assertNotNull(response.getBody());
         assertEquals("1", response.getBody().getId());
         assertEquals("Test Event", response.getBody().getSummary());
-    }
-
-    @Test
-    void createEvent_ShouldCreateEvent_WhenValidRequest() throws Exception {
-        // Given
-        Event created = new Event().setId("42").setSummary("New Event");
-        when(gcIntegrationService.createEvent(any(Event.class))).thenReturn(created);
-
-        // When
-        ResponseEntity<Event> response = calendarEventsController.createEvent(createEventRequest, null);
-
-        // Then
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("42", response.getBody().getId());
-        assertEquals("New Event", response.getBody().getSummary());
     }
 
     @Test

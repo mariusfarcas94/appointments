@@ -63,20 +63,6 @@ public class CalendarEventsController {
 		return ResponseEntity.ok( event );
 	}
 
-	@PostMapping("/events")
-	public ResponseEntity<Event> createEvent( @RequestBody CreateEventRequest request,
-			@RequestParam(value = "calendarId", required = false) String calendarId )
-			throws GeneralSecurityException, IOException {
-
-		final Event event = convert( request );
-
-		final Event created = ( calendarId == null || calendarId.isBlank() ) ?
-				gcIntegrationService.createEvent( event ) :
-				gcIntegrationService.createEvent( calendarId, event );
-
-		return new ResponseEntity<>( created, HttpStatus.CREATED );
-	}
-
 	@PutMapping("/events/{eventId}")
 	public ResponseEntity<Event> updateEvent( @PathVariable("eventId") String eventId,
 			@RequestBody Event updatedEvent,

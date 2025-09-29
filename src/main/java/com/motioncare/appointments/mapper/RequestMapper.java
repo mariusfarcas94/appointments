@@ -1,59 +1,35 @@
 package com.motioncare.appointments.mapper;
 
+import java.time.ZoneId;
+import java.util.Date;
+
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
-import com.motioncare.appointments.dto.CreateEventRequest;
+import com.motioncare.appointments.dto.CreateAppointmentRequest;
 
 public class RequestMapper {
 
 	private RequestMapper() {}
 
-	public static Event convert( CreateEventRequest request ) {
+	public static Event convert( CreateAppointmentRequest request ) {
 		final Event event = new Event();
-		event.setSummary( request.getSummary() );
-		event.setDescription( request.getDescription() );
+		event.setSummary( "[" + request.getTherapistName() + "] " + request.getService() );
 
 		if ( request.getStart() != null ) {
 			final EventDateTime start = new EventDateTime();
-			start.setDateTime( new DateTime( request.getStart().getDateTime() ) );
-
-			if ( request.getStart().getTimeZone() != null ) {
-				start.setTimeZone( request.getStart().getTimeZone() );
-			}
-
+			start.setDateTime( new DateTime( Date.from(request.getStart().atZone( ZoneId.systemDefault()).toInstant()) ));
+			start.setTimeZone( ZoneId.systemDefault().getId() );
 			event.setStart( start );
 		}
 
 		if ( request.getEnd() != null ) {
 			final EventDateTime end = new EventDateTime();
-			end.setDateTime( new DateTime( request.getEnd().getDateTime() ) );
-
-			if ( request.getEnd().getTimeZone() != null ) {
-				end.setTimeZone( request.getEnd().getTimeZone() );
-			}
-
+			end.setDateTime( new DateTime( Date.from(request.getEnd().atZone(ZoneId.systemDefault()).toInstant()) ));
+			end.setTimeZone( ZoneId.systemDefault().getId() );
 			event.setEnd( end );
 		}
 
-		if ( request.getAttendees() != null ) {
-			event.setAttendees(
-					request.getAttendees().stream().map( RequestMapper::convert ).toList() );
-		}
-
 		return event;
-	}
-
-	private static EventAttendee convert( final CreateEventRequest.Attendee attendee ) {
-		EventAttendee eventAttendee = new EventAttendee();
-		eventAttendee.setEmail( attendee.getEmail() );
-		eventAttendee.setDisplayName( attendee.getDisplayName() );
-
-		if ( attendee.getResponseStatus() != null ) {
-			eventAttendee.setResponseStatus( attendee.getResponseStatus() );
-		}
-
-		return eventAttendee;
 	}
 }

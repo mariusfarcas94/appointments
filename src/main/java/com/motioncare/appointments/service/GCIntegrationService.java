@@ -19,7 +19,6 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
-import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -30,13 +29,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.motioncare.appointments.dto.CreateAppointmentRequest;
 import com.motioncare.appointments.dto.EmptySlotResponse;
 import com.motioncare.appointments.dto.AppointmentResponse;
-import com.motioncare.appointments.mapper.RequestMapper;
 
 @Service
 public class GCIntegrationService {

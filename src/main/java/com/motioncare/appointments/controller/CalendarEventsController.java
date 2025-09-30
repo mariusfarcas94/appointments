@@ -1,16 +1,12 @@
 package com.motioncare.appointments.controller;
 
-import static com.motioncare.appointments.mapper.RequestMapper.convert;
-
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,13 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
-import com.motioncare.appointments.dto.CreateEventRequest;
 import com.motioncare.appointments.service.GCIntegrationService;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/calendar")
+@RequestMapping("/calendar")
 @RequiredArgsConstructor
 public class CalendarEventsController {
 

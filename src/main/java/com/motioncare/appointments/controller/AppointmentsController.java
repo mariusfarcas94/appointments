@@ -26,7 +26,7 @@ import com.motioncare.appointments.service.GCIntegrationService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/appointments")
+@RequestMapping("/appointments")
 @RequiredArgsConstructor
 public class AppointmentsController {
 

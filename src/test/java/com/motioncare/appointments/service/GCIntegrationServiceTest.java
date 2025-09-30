@@ -88,7 +88,7 @@ class GCIntegrationServiceTest {
         when(insert.execute()).thenReturn(created);
 
         // When
-        Event result = service.createEvent(new Event().setSummary("Test"));
+        Event result = service.createEvent("test-calendar", new Event().setSummary("Test"));
 
         // Then
         assertNotNull(result);

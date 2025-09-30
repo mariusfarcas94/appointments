@@ -3,37 +3,61 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: motioncare-mysql
+    container_name: motioncare-mysql-prod
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
       MYSQL_DATABASE: motioncare_appointments
       MYSQL_USER: motioncare
-      MYSQL_PASSWORD: motioncare123
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-motioncare123}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./logs/mysql:/var/log/mysql
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "motioncare", "-pmotioncare123"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "motioncare", "-p${MYSQL_PASSWORD:-motioncare123}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - motioncare-network
 
-  # Optional: phpMyAdmin for database management
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: motioncare-phpmyadmin
+  # Spring Boot application
+  app:
+    image: openjdk:17.0.2-slim-buster
+    container_name: motioncare-app-prod
     restart: unless-stopped
     environment:
-      PMA_HOST: mysql
-      PMA_USER: motioncare
-      PMA_PASSWORD: motioncare123
+      SPRING_PROFILES_ACTIVE: prod
+      JWT_SECRET: ${JWT_SECRET:-mySecretKey123456789012345678901234567890}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-motioncare123}
     ports:
-      - "8080:80"
+      - "8080:8080"
+    volumes:
+      - ./app.jar:/app/app.jar
+      - ./config:/app/config
+      - ./logs:/app/logs
+    working_dir: /app
+    command: ["java", "-jar", "app.jar"]
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - motioncare-network
 
 volumes:
   mysql_data:
+
+networks:
+  motioncare-network:
+    driver: bridge

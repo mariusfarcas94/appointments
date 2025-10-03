@@ -3,17 +3,18 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: motioncare-mysql-prod
+    container_name: db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
       MYSQL_DATABASE: motioncare_appointments
       MYSQL_USER: motioncare
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-motioncare123}
+      TZ: "Europe/Bucharest"
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./data:/var/lib/mysql
       - ./logs/mysql:/var/log/mysql
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
@@ -27,7 +28,7 @@ services:
   # Spring Boot application
   app:
     image: openjdk:17.0.2-slim-buster
-    container_name: motioncare-app-prod
+    container_name: app
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: prod
@@ -35,6 +36,7 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-motioncare123}
+      TZ: "Europe/Bucharest"
     ports:
       - "8080:8080"
     volumes:
